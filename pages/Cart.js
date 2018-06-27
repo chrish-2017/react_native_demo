@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PayComponent from './Pay';
 import {
   StyleSheet,
   Text,
@@ -9,7 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var goodsInfo = [
+const goodsInfo = [
   { image: require('./../images/goods.jpg'), name: "双肩背包", tag: "春季新品", price: "39.00", number: 1 },
   { image: require('./../images/goods.jpg'), name: "双肩背包", tag: "春季新品", price: "39.00", number: 1 }
 ];
@@ -23,14 +22,12 @@ export default class CartComponent extends Component {
     }
   }
 
+  static navigationOptions = {
+    title: '购物车'
+  };
+
   toPay() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '订单结算',
-        component: PayComponent
-      });
-    }
+    this.props.navigation.navigate('Pay');
   }
 
   minus(number, index) {

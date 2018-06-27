@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import TabBarComponent from './TabBar';
 import {
   StyleSheet,
   Text,
@@ -37,17 +36,9 @@ export default class AddressComponent extends Component {
         phone: this.state.phone,
         address: this.state.address
     };*/
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '地址管理',
-        component: TabBarComponent,
-        params: {
-          selectedTab: '我的',
-          initialPage: 1
-        }
-      });
-    }
+    this.props.navigation.navigate('Mine', {
+      initialPage: 1
+    });
   }
 
   check() {

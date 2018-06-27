@@ -5,31 +5,18 @@
  */
 
 import React, { Component } from 'react';
-import TabBarComponent from './pages/TabBar';
-import { Navigator } from 'react-native';
+import RootStack from './Navigator';
+import { YellowBox } from 'react-native';
+YellowBox.ignoreWarnings(
+  [
+    'Warning: isMounted(...) is deprecated',
+    'Module RCTImageLoader'
+  ]
+);
 
 type Props = {};
 export default class App extends Component<Props> {
   render() {
-    return (
-      <Navigator
-        initialRoute={{
-          component: TabBarComponent,
-          params:{
-            selectedTab: '首页'
-          }
-        }}
-        configureScene={(route, routeStack) =>
-          Navigator.SceneConfigs.HorizontalSwipeJump
-        }
-        renderScene={(route, navigator) => {
-          let Component = route.component;
-          return (
-            <Component {...route.params} navigator={navigator} />
-          );
-        }
-        }
-      />
-    );
+    return <RootStack />;
   }
 }

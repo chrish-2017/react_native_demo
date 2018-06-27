@@ -10,7 +10,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var addressInfo = [
+const addressInfo = [
   { name: "邹凌", phone: "18380447856", address: "成都高新区天府软件园" },
   { name: "邹凌", phone: "18380447856", address: "成都高新区天府软件园" }
 ];

@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import ViewPager from 'react-native-viewpager';
+import Swiper from 'react-native-swiper';
 import ScrollableTabView, { DefaultTabBar, } from 'react-native-scrollable-tab-view';
 import ChooseModelComponent from './ChooseModel';
-import PayComponent from './Pay';
-import TabBarComponent from './TabBar'
 import {
   StyleSheet,
   Text,
@@ -13,12 +11,12 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var sliderImages = [
+const sliderImages = [
   require('./../images/slide.jpg'),
   require('./../images/slide.jpg'),
   require('./../images/slide.jpg')
 ];
-var goodsInfo = {
+const goodsInfo = {
   name: "双肩背包双肩背包双肩背包双肩背包",
   tag: "春季新品春季新品春季新品春季新品",
   price: "39.00"
@@ -26,11 +24,7 @@ var goodsInfo = {
 export default class GoodsDetailComponent extends Component {
   constructor(props) {
     super(props);
-    var dataSource = new ViewPager.DataSource({
-      pageHasChanged: (p1, p2) => p1 !== p2
-    });
     this.state = {
-      dataSource: dataSource.cloneWithPages(sliderImages),
       chooseTip: '请选择颜色/尺码'
     }
   }
@@ -40,37 +34,25 @@ export default class GoodsDetailComponent extends Component {
   }
 
   toPay() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '订单结算',
-        component: PayComponent
-      });
-    }
+    this.props.navigation.navigate('Pay');
   }
 
   toCart() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '购物车',
-        component: TabBarComponent,
-        params: {
-          selectedTab: '购物车'
-        }
-      });
-    }
+    this.props.navigation.navigate('Cart');
   }
 
   render() {
     return (
       <View style={styles.container}>
         <ScrollView>
-          <ViewPager
-            dataSource={this.state.dataSource}
-            renderPage={this.renderPage}
-            isLoop={true}
-            autoPlay={true}/>
+          <Swiper
+            height={200}
+            autoplay={true}
+            activeDotColor="#fff">
+            {sliderImages.map((item, index) =>
+              <Image key={index} source={item} style={styles.page}/>
+            )}
+          </Swiper>
 
           <View style={styles.goodsInfo}>
             <Text style={styles.goodsName}>{goodsInfo.name}</Text>
@@ -120,14 +102,6 @@ export default class GoodsDetailComponent extends Component {
       </View>
     );
   }
-
-  renderPage(data) {
-    return (
-      <Image
-        source={data}
-        style={styles.page}/>
-    );
-  }
 }
 
 const styles = StyleSheet.create({
@@ -136,7 +110,6 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    height: 200,
     resizeMode: 'stretch'
   },
   goodsInfo: {

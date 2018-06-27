@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import ChooseAddressComponent from './ChooseAddress';
-import TabBarComponent from './TabBar';
 import {
   StyleSheet,
   Text,
@@ -11,7 +10,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var goodsInfo = [
+const goodsInfo = [
   { name: "双肩背包", image: require('./../images/goods.jpg'), tag: "春季新款", price: "39.00", number: 1 },
   { name: "双肩背包", image: require('./../images/goods.jpg'), tag: "春季新款", price: "39.00", number: 1 }
 ];
@@ -28,17 +27,9 @@ export default class PayComponent extends Component {
   }
 
   toMine() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '我的订单',
-        component: TabBarComponent,
-        params: {
-          selectedTab: '我的',
-          initialPage: 0
-        }
-      });
-    }
+    this.props.navigation.navigate('Mine', {
+      initialPage: 0
+    });
   }
 
   render() {
@@ -92,7 +83,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 10,
     paddingRight: 5,
-    marginTop: 5,
     marginBottom: 5,
     flexDirection: 'row',
     justifyContent: 'space-between'

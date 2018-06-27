@@ -10,7 +10,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var goodsInfo = {
+const goodsInfo = {
   image: require('./../images/goods.jpg'),
   price: "39.00",
   stock: 102,

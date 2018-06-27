@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import ScrollableTabView, { DefaultTabBar, } from 'react-native-scrollable-tab-view';
-import AddressComponent from './Address';
 import {
   StyleSheet,
   Text,
@@ -10,7 +9,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var orderInfo = [ {
+const orderInfo = [ {
   no: "123456789",
   status: "已发货",
   goodsList: [
@@ -18,19 +17,18 @@ var orderInfo = [ {
     { image: require('./../images/goods.jpg'), name: "双肩背包", tag: "春季新品", price: "39.00", number: 1 }
   ]
 } ];
-var addressInfo = [
+const addressInfo = [
   { name: "邹凌", phone: "18380447856", address: "成都高新区天府软件园" },
   { name: "邹凌", phone: "18380447856", address: "成都高新区天府软件园" }
 ];
 export default class MineComponent extends Component {
+
+  static navigationOptions = {
+    title: '我的'
+  };
+
   toAddress() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '地址管理',
-        component: AddressComponent
-      });
-    }
+    this.props.navigation.navigate('Address');
   }
 
   render() {

@@ -13,7 +13,7 @@ export default class TabBarComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedTab: this.props.selectedTab
+      selectedTab: this.props.selectedTab || '首页'
     }
   }
 
@@ -23,19 +23,19 @@ export default class TabBarComponent extends Component {
         name: "首页",
         icon: require('./../images/home.png'),
         selectedIcon: require('./../images/selectedHome.png'),
-        component: <HomeComponent navigator={this.props.navigator}/>
+        component: <HomeComponent navigation={this.props.navigation}/>
       },
       {
         name: "购物车",
         icon: require('./../images/cart.png'),
         selectedIcon: require('./../images/selectedCart.png'),
-        component: <CartComponent navigator={this.props.navigator}/>
+        component: <CartComponent navigation={this.props.navigation}/>
       },
       {
         name: "我的",
         icon: require('./../images/mine.png'),
         selectedIcon: require('./../images/selectedMine.png'),
-        component: <MineComponent navigator={this.props.navigator} initialPage={this.props.initialPage}/>
+        component: <MineComponent navigation={this.props.navigation} initialPage={this.props.initialPage}/>
       }
     ];
     return (
@@ -44,7 +44,7 @@ export default class TabBarComponent extends Component {
           {tabBarInfo.map((item, index) =>
             <TabNavigator.Item
               key={index}
-              selected={this.state.selectedTab == item.name}
+              selected={this.state.selectedTab === item.name}
               title={item.name}
               titleStyle={styles.tabText}
               selectedTitleStyle={styles.selectedTabText}

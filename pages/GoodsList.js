@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import GoodsDetailComponent from './GoodsDetail';
 import {
   StyleSheet,
   Text,
@@ -9,7 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var goodsInfo = [
+const goodsInfo = [
   {
     typeName: "新品上架",
     goodsList: [
@@ -26,13 +25,7 @@ export default class GoodsListComponent extends Component {
   }
 
   toGoodsDetail() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '商品详情',
-        component: GoodsDetailComponent
-      });
-    }
+    this.props.navigation.navigate('Detail');
   }
 
   render() {
@@ -70,7 +63,6 @@ const styles = StyleSheet.create({
     flex: 1
   },
   goodsList: {
-    marginTop: 10,
     backgroundColor: '#fff',
     paddingLeft: 10,
     paddingRight: 10,

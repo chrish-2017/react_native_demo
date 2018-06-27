@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import ViewPager from 'react-native-viewpager';
+import Swiper from 'react-native-swiper';
 import GoodsListComponent from './GoodsList';
 import {
   StyleSheet,
@@ -10,12 +10,12 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-var sliderImages = [
+const sliderImages = [
   require('./../images/slide.jpg'),
   require('./../images/slide.jpg'),
   require('./../images/slide.jpg')
 ];
-var categoryInfo = [
+const categoryInfo = [
   { image: require('./../images/slide.jpg'), name: "新品上架" },
   { image: require('./../images/slide.jpg'), name: "新品上架" },
   { image: require('./../images/slide.jpg'), name: "新品上架" },
@@ -28,33 +28,28 @@ var categoryInfo = [
 export default class HomeComponent extends Component {
   constructor(props) {
     super(props);
-    var dataSource = new ViewPager.DataSource({
-      pageHasChanged: (p1, p2) => p1 !== p2
-    });
-    this.state = {
-      dataSource: dataSource.cloneWithPages(sliderImages)
-    }
   }
 
+  static navigationOptions = {
+    title: '首页'
+  };
+
   toGoodsList() {
-    let navigator = this.props.navigator;
-    if (navigator) {
-      navigator.push({
-        title: '商品列表',
-        component: GoodsListComponent
-      });
-    }
+    this.props.navigation.navigate('List');
   }
 
   render() {
     return (
       <ScrollView>
         <View style={styles.container}>
-          <ViewPager
-            dataSource={this.state.dataSource}
-            renderPage={this.renderPage}
-            isLoop={true}
-            autoPlay={true}/>
+          <Swiper
+            height={200}
+            autoplay={true}
+            activeDotColor="#fff">
+            {sliderImages.map((item, index) =>
+              <Image key={index} source={item} style={styles.page}/>
+            )}
+          </Swiper>
 
           <View style={[ styles.category ]}>
             {categoryInfo.map((item, index) =>
@@ -67,17 +62,9 @@ export default class HomeComponent extends Component {
             )}
           </View>
 
-          <GoodsListComponent navigator={this.props.navigator}/>
+          <GoodsListComponent navigation={this.props.navigation}/>
         </View>
       </ScrollView>
-    );
-  }
-
-  renderPage(data) {
-    return (
-      <Image
-        source={data}
-        style={styles.page}/>
     );
   }
 }
@@ -88,7 +75,6 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    height: 200,
     resizeMode: 'stretch'
   },
   category: {
@@ -98,7 +84,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around'
+    justifyContent: 'space-around',
+    marginBottom: 10,
   },
   categoryItem: {
     paddingLeft: 10,
