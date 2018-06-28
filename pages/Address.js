@@ -56,7 +56,7 @@ export default class AddressComponent extends Component {
             <TextInput onChangeText={(text) => this.setState({ name: text })} placeholder='收货人姓名'/>
             <TextInput onChangeText={(text) => this.setState({ phone: text })} placeholder='电话号码'/>
             <View style={styles.pickerItem}>
-              <Text>省:</Text>
+              <Text>选择省份:</Text>
               <Picker
                 style={styles.picker}
                 mode={Picker.MODE_DIALOG}
@@ -73,7 +73,7 @@ export default class AddressComponent extends Component {
               </Picker>
             </View>
             <View style={styles.pickerItem}>
-              <Text>市:</Text>
+              <Text>当前城市:</Text>
               <Picker
                 style={styles.picker}
                 mode={Picker.MODE_DIALOG}
@@ -90,7 +90,7 @@ export default class AddressComponent extends Component {
               </Picker>
             </View>
             <View style={styles.pickerItem}>
-              <Text>县:</Text>
+              <Text>当前地区:</Text>
               <Picker
                 style={styles.picker}
                 mode={Picker.MODE_DIALOG}
@@ -101,8 +101,10 @@ export default class AddressComponent extends Component {
                   })
                 }
               >
-                {this.state.areaArray.map((aOption) => <Picker.Item color='#b5b9be' label={aOption.name}
-                                                                    value={aOption.name} key={aOption.name}/>)}
+                {this.state.areaArray ? this.state.areaArray.map((aOption) => <Picker.Item color='#b5b9be'
+                                                                                           label={aOption.name}
+                                                                                           value={aOption.name}
+                                                                                           key={aOption.name}/>) : null}
               </Picker>
             </View>
             <TextInput onChangeText={(text) => this.setState({ address: text })} placeholder='详细地址'/>
@@ -158,7 +160,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   picker: {
-    marginLeft: 130,
-    width: Dimensions.get('window').width - 180
+    width: Dimensions.get('window').width - 60
   }
 });

@@ -4,21 +4,17 @@ import {
   Text,
   View,
   Image,
+  Dimensions,
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
 
-const goodsInfo = [
-  { image: require('./../images/goods.jpg'), name: "双肩背包", tag: "春季新品", price: "39.00", number: 1 },
-  { image: require('./../images/goods.jpg'), name: "双肩背包", tag: "春季新品", price: "39.00", number: 1 }
-];
+const hostString = 'https://easy-mock.com/mock/5b3357dce144ee0b9ede2e12/store';
 export default class CartComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      goodsInfo: goodsInfo,
-      selectAll: false,
-      totalPrice: 0
+      goodsInfo: null
     }
   }
 
@@ -26,30 +22,102 @@ export default class CartComponent extends Component {
     title: '购物车'
   };
 
-  toPay() {
-    this.props.navigation.navigate('Pay');
+  componentDidMount() {
+    this.init();
   }
 
-  minus(number, index) {
-    if (number > 1) {
-      number--;
+  init() {
+    fetch(hostString + '/intranet/cart/getAllCart?createBy=88')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        const goodsInfo = responseJson.o;
+        for (let i = 0; i < goodsInfo.length; i++) {
+          if (goodsInfo[ i ].goodsAttr.goods.isPutaway) {
+            goodsInfo[ i ].checked = true;
+          }
+        }
+        console.log("goodsInfo==");
+        console.log(goodsInfo);
+        this.setState({
+          goodsInfo: goodsInfo
+        });
+        this.count();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  render() {
+    if (this.state.goodsInfo) {
+      return (
+        <View style={styles.container}>
+          <ScrollView>
+            <View style={styles.goodsList}>
+              {this.state.goodsInfo.map((item, index) =>
+                <View key={index} style={styles.goodsItem}>
+                  <TouchableWithoutFeedback onPress={this.check.bind(this, index)}>
+                    <Image style={styles.checkboxIcon}
+                           source={item.checked ? require('./../images/selectedCheckbox.png') : require('./../images/checkbox.png')}/>
+                  </TouchableWithoutFeedback>
+                  <Image style={styles.goodsImage}
+                         source={{ uri: item.goodsAttr.goods.goodsImgs[ 0 ].image.imgName }}/>
+                  <View style={styles.goodsDescribe}>
+                    <View>
+                      <Text>{item.goodsAttr.goods.goodsName}</Text>
+                      <Text style={styles.goodsTag}>{item.goodsAttr.attrValue}</Text>
+                    </View>
+                    <Text style={styles.goodsPrice}>￥{item.goodsAttr.sellPrice}</Text>
+                  </View>
+                  <View style={styles.goodsCount}>
+                    <TouchableWithoutFeedback onPress={this.minus.bind(this, item.counts, index)}>
+                      <Image style={styles.countIcon} source={require('./../images/minusIcon.png')}/>
+                    </TouchableWithoutFeedback>
+                    <Text style={styles.goodsNumber}>{item.counts}</Text>
+                    <TouchableWithoutFeedback onPress={this.add.bind(this, item.counts, index)}>
+                      <Image style={styles.countIcon} source={require('./../images/addIcon.png')}/>
+                    </TouchableWithoutFeedback>
+                  </View>
+                  <TouchableWithoutFeedback onPress={this.del.bind(this, index)}>
+                    <Image style={styles.delIcon} source={require('./../images/delete.png')}/>
+                  </TouchableWithoutFeedback>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+          <View style={styles.bottomBar}>
+            <View style={styles.selectAll}>
+              <TouchableWithoutFeedback onPress={this.selectAll.bind(this)}>
+                <Image style={styles.checkboxIcon}
+                       source={this.state.selectAll ? require('./../images/selectedCheckbox.png') : require('./../images/checkbox.png')}/>
+              </TouchableWithoutFeedback>
+              <Text> 全选 </Text>
+            </View>
+            <Text>合计: <Text style={styles.goodsPrice}>{this.state.totalPrice}</Text></Text>
+            <Text style={styles.button} onPress={this.toPay.bind(this)}>结算</Text>
+          </View>
+        </View>
+      );
+    } else {
+      return null;
     }
-    let goodsInfo = this.state.goodsInfo;
-    goodsInfo[ index ].number = number;
-    this.setState({
-      goodsInfo: goodsInfo
-    });
-    this.count();
   }
 
-  add(number, index) {
-    number++;
+  count() {
     let goodsInfo = this.state.goodsInfo;
-    goodsInfo[ index ].number = number;
+    let selectAll = true;
+    let totalPrice = 0;
+    for (let i = 0; i < goodsInfo.length; i++) {
+      if (goodsInfo[ i ].checked) {
+        totalPrice += Number(goodsInfo[ i ].goodsAttr.sellPrice) * Number(goodsInfo[ i ].counts);
+      } else {
+        selectAll = false;
+      }
+    }
     this.setState({
-      goodsInfo: goodsInfo
-    });
-    this.count();
+      selectAll: selectAll,
+      totalPrice: totalPrice
+    })
   }
 
   check(index) {
@@ -62,7 +130,7 @@ export default class CartComponent extends Component {
         count++;
       }
     }
-    if (count == goodsInfo.length) {
+    if (count === goodsInfo.length) {
       selectAll = true
     }
     this.setState({
@@ -81,23 +149,33 @@ export default class CartComponent extends Component {
     this.setState({
       goodsInfo: goodsInfo,
       selectAll: selectAll
-    })
+    });
+    this.count();
   }
 
-  count() {
-    let goodsInfo = this.state.goodsInfo;
-    let totalPrice = 0;
-    for (let i = 0; i < goodsInfo.length; i++) {
-      if (goodsInfo[ i ].checked) {
-        totalPrice += parseInt(goodsInfo[ i ].price) * parseInt(goodsInfo[ i ].number);
-      }
+  minus(number, index) {
+    if (number > 1) {
+      number--;
     }
+    let goodsInfo = this.state.goodsInfo;
+    goodsInfo[ index ].counts = number;
     this.setState({
-      totalPrice: totalPrice
-    })
+      goodsInfo: goodsInfo
+    });
+    this.count();
   }
 
-  delete(index) {
+  add(number, index) {
+    number++;
+    let goodsInfo = this.state.goodsInfo;
+    goodsInfo[ index ].counts = number;
+    this.setState({
+      goodsInfo: goodsInfo
+    });
+    this.count();
+  }
+
+  del(index) {
     let goodsInfo = this.state.goodsInfo;
     goodsInfo.splice(index, 1);
     this.setState({
@@ -106,52 +184,8 @@ export default class CartComponent extends Component {
     this.count();
   }
 
-  render() {
-    return (
-      <View style={styles.container}>
-        <ScrollView>
-          <View style={styles.goodsList}>
-            {this.state.goodsInfo.map((item, index) =>
-              <View key={index} style={styles.goodsItem}>
-                <TouchableWithoutFeedback onPress={this.check.bind(this, index)}>
-                  <Image style={styles.checkboxIcon}
-                         source={item.checked ? require('./../images/selectedCheckbox.png') : require('./../images/checkbox.png')}/>
-                </TouchableWithoutFeedback>
-                <Image style={styles.goodsImage} source={item.image}/>
-                <View style={styles.goodsDescribe}>
-                  <Text>{item.name}</Text>
-                  <Text style={styles.goodsTag}>{item.tag}</Text>
-                  <Text>￥{item.price}</Text>
-                </View>
-                <View style={styles.goodsCount}>
-                  <TouchableWithoutFeedback onPress={this.minus.bind(this, item.number, index)}>
-                    <Image style={styles.countIcon} source={require('./../images/minusIcon.png')}/>
-                  </TouchableWithoutFeedback>
-                  <Text style={styles.goodsNumber}>{item.number}</Text>
-                  <TouchableWithoutFeedback onPress={this.add.bind(this, item.number, index)}>
-                    <Image style={styles.countIcon} source={require('./../images/addIcon.png')}/>
-                  </TouchableWithoutFeedback>
-                </View>
-                <TouchableWithoutFeedback onPress={this.delete.bind(this, index)}>
-                  <Image style={styles.delIcon} source={require('./../images/delete.png')}/>
-                </TouchableWithoutFeedback>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-        <View style={styles.bottomBar}>
-          <View style={styles.selectAll}>
-            <TouchableWithoutFeedback onPress={this.selectAll.bind(this)}>
-              <Image style={styles.checkboxIcon}
-                     source={this.state.selectAll ? require('./../images/selectedCheckbox.png') : require('./../images/checkbox.png')}/>
-            </TouchableWithoutFeedback>
-            <Text> 全选 </Text>
-          </View>
-          <Text>合计: ￥{this.state.totalPrice}</Text>
-          <Text style={styles.button} onPress={this.toPay.bind(this)}>结算</Text>
-        </View>
-      </View>
-    );
+  toPay() {
+    this.props.navigation.navigate('Pay');
   }
 }
 
@@ -178,20 +212,27 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   goodsDescribe: {
-    height: 60,
+    width: Dimensions.get('window').width - 150,
+    height: 80,
     flexDirection: 'column',
     justifyContent: 'space-between'
+  },
+  goodsTag: {
+    color: '#aaa'
+  },
+  goodsPrice: {
+    color: '#f00'
   },
   goodsCount: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 5,
+    bottom: 10,
     right: 10
   },
   goodsNumber: {
-    marginLeft: 30,
-    marginRight: 30,
+    marginLeft: 20,
+    marginRight: 20,
     fontWeight: 'bold'
   },
   checkboxIcon: {
@@ -199,14 +240,14 @@ const styles = StyleSheet.create({
     height: 20
   },
   countIcon: {
-    width: 30,
-    height: 30
+    width: 20,
+    height: 20
   },
   delIcon: {
-    //width: 15,
-    //height: 15,
+    width: 15,
+    height: 18,
     position: 'absolute',
-    top: 5,
+    top: 10,
     right: 10
   },
   bottomBar: {

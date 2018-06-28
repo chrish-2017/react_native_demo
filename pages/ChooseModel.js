@@ -10,13 +10,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-const goodsInfo = {
-  image: require('./../images/goods.jpg'),
-  price: "39.00",
-  stock: 102,
-  color: [ "红色", "绿色", "蓝色" ],
-  size: [ "14寸", "16寸", "18寸" ]
-};
+const hostString = 'https://easy-mock.com/mock/5b3357dce144ee0b9ede2e12/store';
 export default class ChooseModelComponent extends Component {
   constructor(props) {
     super(props);
@@ -24,40 +18,11 @@ export default class ChooseModelComponent extends Component {
       offset: new Animated.Value(0),
       opacity: new Animated.Value(0),
       hide: true,
-      color: '',
-      size: '',
-      number: 1
+      choosed: 0,
+      number: 1,
+      goodsInfo: this.props.goodsInfo,
+      goodsAttrs: this.props.goodsAttrs
     }
-  }
-
-  minus() {
-    let number = this.state.number;
-    if (number > 1) {
-      number--;
-    }
-    this.setState({
-      number: number
-    })
-  }
-
-  add() {
-    let number = this.state.number;
-    number++;
-    this.setState({
-      number: number
-    })
-  }
-
-  selectColor(item) {
-    this.setState({
-      color: item
-    })
-  }
-
-  selectSize(item) {
-    this.setState({
-      size: item
-    })
   }
 
   render() {
@@ -71,35 +36,24 @@ export default class ChooseModelComponent extends Component {
 
           <Animated.View style={[ styles.content ]}>
             <View style={styles.imageBox}>
-              <Image style={styles.goodsImage} source={goodsInfo.image}/>
+              <Image style={styles.goodsImage}
+                     source={{ uri: this.state.goodsInfo.goodsImgs[ 0 ].image.imgName }}/>
             </View>
             <View style={styles.goodsInfo}>
-              <Text style={styles.goodsPrice}>￥{goodsInfo.price}</Text>
-              <Text>库存{goodsInfo.stock}件</Text>
+              <Text style={styles.goodsPrice}>￥{this.state.goodsAttrs[ this.state.choosed ].sellPrice}</Text>
+              <Text>库存{this.state.goodsAttrs[ this.state.choosed ].inventory.inventoryAmount}件</Text>
             </View>
             <TouchableWithoutFeedback onPress={this.choose.bind(this)}>
               <Image style={styles.closeIcon} source={require('./../images/close.png')}/>
             </TouchableWithoutFeedback>
             <View style={styles.modelItem}>
-              <Text style={styles.dark}>颜色</Text>
               <View style={styles.modelContent}>
-                {goodsInfo.color.map((item, index) =>
-                  this.state.color == item ?
-                    <Text key={index} style={styles.selectedItem}>{item}</Text>
+                {this.state.goodsAttrs.map((item, index) =>
+                  this.state.choosed === index ?
+                    <Text key={index} style={styles.selectedItem}>{item.attrValue}</Text>
                     :
                     <Text key={index} style={styles.selectItem}
-                          onPress={this.selectColor.bind(this, item)}>{item}</Text>
-                )}
-              </View>
-            </View>
-            <View style={styles.modelItem}>
-              <Text style={styles.dark}>尺码</Text>
-              <View style={styles.modelContent}>
-                {goodsInfo.size.map((item, index) =>
-                  this.state.size == item ?
-                    <Text key={index} style={styles.selectedItem}>{item}</Text>
-                    :
-                    <Text key={index} style={styles.selectItem} onPress={this.selectSize.bind(this, item)}>{item}</Text>
+                          onPress={this.selectAttr.bind(this, index)}>{item.attrValue}</Text>
                 )}
               </View>
             </View>
@@ -120,6 +74,30 @@ export default class ChooseModelComponent extends Component {
         </View>
       );
     }
+  }
+
+  selectAttr(index) {
+    this.setState({
+      choosed: index
+    })
+  }
+
+  minus() {
+    let number = this.state.number;
+    if (number > 1) {
+      number--;
+    }
+    this.setState({
+      number: number
+    })
+  }
+
+  add() {
+    let number = this.state.number;
+    number++;
+    this.setState({
+      number: number
+    })
   }
 
   //显示动画
@@ -171,26 +149,28 @@ export default class ChooseModelComponent extends Component {
     );
   }
 
-  //选择
-  choose() {
-    if (!this.state.hide) {
-      this.out();
-      let color = this.state.color;
-      let size = this.state.size;
-      let number = this.state.number;
-      if (color && size) {
-        let chooseTip = color + '/' + size + '/' + number;
-        this.parent.setState({
-          chooseTip: chooseTip
-        })
-      }
-    }
-  }
-
   show(obj: Object) {
     this.parent = obj;
     if (this.state.hide) {
       this.setState({ hide: false }, this.in);
+    }
+  }
+
+  //选择
+  choose() {
+    if (!this.state.hide) {
+      this.out();
+      let goodsAttrs = this.state.goodsAttrs;
+      let choosed = this.state.choosed;
+      let attr = goodsAttrs[ choosed ].attrValue;
+      let number = this.state.number;
+      if (attr && number) {
+        let chooseTip = attr + '/' + number;
+        this.parent.setState({
+          chooseTip: chooseTip
+        })
+      }
+      this.parent.nextPage();
     }
   }
 }
@@ -210,7 +190,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: Dimensions.get('window').width,
-    height: 450,
+    height: 266,
     backgroundColor: '#fff',
     paddingTop: 20,
     position: 'absolute',
@@ -220,7 +200,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#aaa',
     position: 'absolute',
-    top: 0,
+    top: 1,
     left: 20
   },
   goodsImage: {
@@ -244,16 +224,18 @@ const styles = StyleSheet.create({
     right: 15
   },
   modelItem: {
-    padding: 20,
+    paddingLeft: 10,
+    paddingRight: 10,
     paddingBottom: 0
   },
   goodsCount: {
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
     paddingBottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 56
+    marginBottom: 20
   },
   modelContent: {
     flexDirection: 'row',

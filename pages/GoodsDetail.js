@@ -8,29 +8,147 @@ import {
   View,
   Image,
   ScrollView,
-  TouchableWithoutFeedback,
+  TouchableWithoutFeedback
 } from 'react-native';
 
-const sliderImages = [
-  require('./../images/slide.jpg'),
-  require('./../images/slide.jpg'),
-  require('./../images/slide.jpg')
-];
-const goodsInfo = {
-  name: "双肩背包双肩背包双肩背包双肩背包",
-  tag: "春季新品春季新品春季新品春季新品",
-  price: "39.00"
-};
+const hostString = 'https://easy-mock.com/mock/5b3357dce144ee0b9ede2e12/store';
 export default class GoodsDetailComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      chooseTip: '请选择颜色/尺码'
+      carouselImages: null,
+      goodsInfo: null,
+      chooseTip: '请选择规格/数量'
     }
   }
 
-  showModel() {
+  componentDidMount() {
+    this.init();
+  }
+
+  init() {
+    fetch(hostString + '/intranet/goods/get?goodsId=187')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        const goodsInfo = responseJson.o;
+        const goodsAttrs = goodsInfo.goodsAttrs;
+        const goodsImgs = goodsInfo.goodsImgs;
+        const description = goodsInfo.description;
+        let specificationsModel = goodsInfo.specificationsModel;
+        const carouselImages = [];
+        let brandImage;
+        for (let i = 0; i < goodsAttrs.length; i++) {
+          const orderClosingTime = goodsAttrs[ i ].orderClosingTime;
+          if (new Date(orderClosingTime) < new Date()) {
+            goodsAttrs[ i ].orderClose = true;
+          }
+        }
+        console.log("goodsAttrs==");
+        console.log(goodsAttrs);
+        for (let i = 0; i < goodsImgs.length; i++) {
+          const imageType = goodsImgs[ i ].imageType;
+          const imgName = goodsImgs[ i ].image.imgName;
+          if (imageType === 1) {
+            carouselImages.push(imgName);
+          } else if (imageType === 3) {
+            brandImage = imgName;
+          }
+        }
+        console.log("brandImage==");
+        console.log(brandImage);
+        specificationsModel = specificationsModel.split("\n");
+        goodsInfo.specificationsModel = specificationsModel;
+        this.setState({
+          carouselImages: carouselImages,
+          goodsInfo: goodsInfo,
+          description: description,
+          goodsAttrs: goodsAttrs,
+          brandImage: brandImage
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  render() {
+    if (this.state.carouselImages && this.state.goodsInfo) {
+      return (
+        <View style={styles.container}>
+          <ScrollView>
+            <Swiper
+              height={400}
+              autoplay={true}
+              activeDotColor="#fff">
+              {this.state.carouselImages.map((item, index) =>
+                <Image key={index} source={{uri: item}} style={styles.page}/>
+              )}
+            </Swiper>
+
+            <View style={styles.goodsInfo}>
+              <Text style={styles.goodsName}>{this.state.goodsInfo.goodsName}</Text>
+              <Text style={styles.goodsTag}>{this.state.goodsInfo.goodsTitle}</Text>
+              <Text style={styles.goodsPrice}>￥{this.state.goodsInfo.goodsAttrs[ 0 ].sellPrice}</Text>
+            </View>
+
+            <TouchableWithoutFeedback onPress={this.showModel.bind(this)}>
+              <View style={styles.chooseModel}>
+                <Text>{this.state.chooseTip}</Text>
+                <Image style={styles.rightIcon} source={require('./../images/right.png')}/>
+              </View>
+            </TouchableWithoutFeedback>
+
+            <ScrollableTabView
+              tabBarPosition='top'
+              initialPage={0}
+              renderTabBar={() => <DefaultTabBar/>}
+              tabBarBackgroundColor="#fff"
+              tabBarActiveTextColor="#f44336"
+              tabBarInactiveTextColor="#666"
+              tabBarTextStyle={{ fontWeight: 'normal' }}
+              tabBarUnderlineStyle={{ height: 2, backgroundColor: '#f44336' }}
+            >
+              <View tabLabel='详情描述'>
+                <Text>详情描述</Text>
+              </View>
+              <View tabLabel='产品参数'>
+                <Text>产品参数</Text>
+              </View>
+              <View tabLabel='品牌描述'>
+                <Text>品牌描述</Text>
+              </View>
+            </ScrollableTabView>
+          </ScrollView>
+
+          <View style={styles.bottomBar}>
+            <Image style={styles.contactIcon} source={require('./../images/contact.png')}/>
+            <Image style={styles.buyCartIcon} source={require('./../images/buyCart.png')}/>
+            <View style={styles.buttonGroup}>
+              <Text style={[ styles.button, styles.blue ]} onPress={this.toCart.bind(this, 1)}>加入购物车</Text>
+              <Text style={styles.button} onPress={this.toPay.bind(this, 2)}>立即购买</Text>
+            </View>
+          </View>
+
+          <ChooseModelComponent ref="chooseModel" goodsInfo={this.state.goodsInfo} goodsAttrs={this.state.goodsAttrs}/>
+        </View>
+      );
+    } else {
+      return null;
+    }
+  }
+
+  showModel(type) {
+    this.setState({ type: type });
     this.refs.chooseModel.show(this);
+  }
+
+  nextPage() {
+    let type = this.state.type;
+    if (1 === type) {
+      this.toCart();
+    } else if (2 === type) {
+      this.toPay();
+    }
   }
 
   toPay() {
@@ -39,68 +157,6 @@ export default class GoodsDetailComponent extends Component {
 
   toCart() {
     this.props.navigation.navigate('Cart');
-  }
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <ScrollView>
-          <Swiper
-            height={200}
-            autoplay={true}
-            activeDotColor="#fff">
-            {sliderImages.map((item, index) =>
-              <Image key={index} source={item} style={styles.page}/>
-            )}
-          </Swiper>
-
-          <View style={styles.goodsInfo}>
-            <Text style={styles.goodsName}>{goodsInfo.name}</Text>
-            <Text style={styles.goodsPrice}>￥{goodsInfo.price}</Text>
-            <Text style={styles.goodsTag}>{goodsInfo.tag}</Text>
-          </View>
-
-          <TouchableWithoutFeedback onPress={this.showModel.bind(this)}>
-            <View style={styles.chooseModel}>
-              <Text>{this.state.chooseTip}</Text>
-              <Image style={styles.rightIcon} source={require('./../images/right.png')}/>
-            </View>
-          </TouchableWithoutFeedback>
-
-          <ScrollableTabView
-            tabBarPosition='top'
-            initialPage={0}
-            renderTabBar={() => <DefaultTabBar/>}
-            tabBarBackgroundColor="#fff"
-            tabBarActiveTextColor="#f44336"
-            tabBarInactiveTextColor="#666"
-            tabBarTextStyle={{ fontWeight: 'normal' }}
-            tabBarUnderlineStyle={{ height: 2, backgroundColor: '#f44336' }}
-          >
-            <View tabLabel='详情描述'>
-              <Text>详情描述</Text>
-            </View>
-            <View tabLabel='产品参数'>
-              <Text>产品参数</Text>
-            </View>
-            <View tabLabel='品牌描述'>
-              <Text>品牌描述</Text>
-            </View>
-          </ScrollableTabView>
-        </ScrollView>
-
-        <View style={styles.bottomBar}>
-          <Image style={styles.contactIcon} source={require('./../images/contact.png')}/>
-          <Image style={styles.buyCartIcon} source={require('./../images/buyCart.png')}/>
-          <View style={styles.buttonGroup}>
-            <Text style={[ styles.button, styles.blue ]} onPress={this.toCart.bind(this)}>加入购物车</Text>
-            <Text style={styles.button} onPress={this.toPay.bind(this)}>立即购买</Text>
-          </View>
-        </View>
-
-        <ChooseModelComponent ref="chooseModel"/>
-      </View>
-    );
   }
 }
 
@@ -114,7 +170,8 @@ const styles = StyleSheet.create({
   },
   goodsInfo: {
     backgroundColor: '#fff',
-    padding: 10
+    padding: 10,
+    marginBottom: 10
   },
   goodsName: {
     fontSize: 18
@@ -129,8 +186,7 @@ const styles = StyleSheet.create({
   chooseModel: {
     backgroundColor: '#fff',
     padding: 10,
-    marginTop: 5,
-    marginBottom: 5,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between'
   },

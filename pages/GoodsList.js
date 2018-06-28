@@ -4,103 +4,93 @@ import {
   Text,
   View,
   Image,
-  Dimensions,
+  ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
 
-const goodsInfo = [
-  {
-    typeName: "新品上架",
-    goodsList: [
-      { image: require('./../images/goods.jpg'), name: "双肩背包", price: "39.00" },
-      { image: require('./../images/goods.jpg'), name: "双肩背包", price: "39.00" },
-      { image: require('./../images/goods.jpg'), name: "双肩背包", price: "39.00" },
-      { image: require('./../images/goods.jpg'), name: "双肩背包", price: "39.00" }
-    ]
-  }
-];
+const hostString = 'https://easy-mock.com/mock/5b3357dce144ee0b9ede2e12/store';
 export default class GoodsListComponent extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      goodsList: null
+    }
+  }
+
+  componentDidMount() {
+    this.init();
+  }
+
+  init() {
+    fetch(hostString + '/intranet/goods/getChildrenType?goodsTypeId=137')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        const goodsList = responseJson.records;
+        console.log("goodsList==");
+        console.log(goodsList);
+        this.setState({
+          goodsList: goodsList
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  render() {
+    if (this.state.goodsList) {
+      return (
+        <ScrollView>
+          <View style={styles.goodsList}>
+            {this.state.goodsList.map((item, index) =>
+              <TouchableWithoutFeedback key={index} onPress={this.toGoodsDetail.bind(this)}>
+                <View style={styles.goodsItem}>
+                  <Image style={styles.goodsImage}
+                         source={{ uri: item.goodsImgs[ 0 ].image.imgName }}/>
+                  <View>
+                    <Text style={styles.goodsName}>{item.goodsName}</Text>
+                    <Text style={styles.goodsPrice}>￥{item.goodsAttrs[ 0 ].sellPrice}</Text>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            )}
+          </View>
+        </ScrollView>
+      );
+    } else {
+      return null;
+    }
   }
 
   toGoodsDetail() {
     this.props.navigation.navigate('Detail');
   }
-
-  render() {
-    return (
-      <View style={styles.goodsList}>
-        {goodsInfo.map((item, index) =>
-          <View key={index} style={styles.goodsItem}>
-            <View style={styles.title}>
-              <View style={styles.line}></View>
-              <Text>新品上架</Text>
-              <View style={styles.line}></View>
-            </View>
-            <View style={styles.content}>
-              {item.goodsList.map((item, index) =>
-                <TouchableWithoutFeedback key={index} onPress={this.toGoodsDetail.bind(this)}>
-                  <View key={index} style={styles.goodsItem}>
-                    <Image style={styles.goodsImage} source={item.image}/>
-                    <View style={styles.goodsDescribe}>
-                      <Text style={styles.goodsName}>{item.name}</Text>
-                      <Text style={styles.goodsPrice}>{item.price}</Text>
-                    </View>
-                  </View>
-                </TouchableWithoutFeedback>
-              )}
-            </View>
-          </View>
-        )}
-      </View>
-    );
-  }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
   goodsList: {
     backgroundColor: '#fff',
     paddingLeft: 10,
     paddingRight: 10,
     paddingTop: 5,
     paddingBottom: 5,
-    flex: 1
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around'
   },
   goodsItem: {
     paddingTop: 5,
     paddingBottom: 5
   },
-  title: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  line: {
-    width: (Dimensions.get('window').width - 116) / 2,
-    marginLeft: 10,
-    marginRight: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333'
-  },
-  content: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around'
-  },
   goodsImage: {
     width: 160,
-    height: 100
-  },
-  goodsDescribe: {
-    flexDirection: 'row',
-    justifyContent: 'space-between'
+    height: 160
   },
   goodsName: {
-    fontSize: 12
+    fontSize: 12,
+    width: 160,
+    height: 15
   },
   goodsPrice: {
     fontSize: 12
